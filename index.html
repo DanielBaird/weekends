@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Weekends Left</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;800&display=swap" rel="stylesheet">
+	<style>
+		html, body {
+			font-family: Nunito, Avenir, sans-serif;
+			font-size: 16px;
+		}
+		* {
+			margin: 0;
+			padding: 0;
+			font-family: inherit;
+			font-size: inherit;
+		}
+		h1 {
+			text-align: center;
+			padding: 2em 0 1em;
+			font-size: 3rem;
+			font-weight: 800;
+		}
+		p {
+			text-align: center;
+			font-size: 1rem;
+			padding: 0 0 1.5em;
+		}
+		#controls, #calendar {
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			align-content: center;
+			flex-wrap: wrap;
+			/* font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; */
+		}
+		#calendar {
+			background-color: #eee;
+			font-size: 8px;
+			padding: 10px 30px;
+			margin: 0 auto;
+			max-width: 50rem;
+		}
+		#controls {
+			justify-content: center;
+			padding: 3em 1em;
+		}
+		select {
+			font-size: inherit;
+			padding: 0.25em 0.5em;
+		}
+		.control label {
+			padding: 1em;
+			margin: 1em;
+			background-color: #f8f8f8;
+		}
+		.control select {
+			margin-left: 1em;
+		}
+		#calendar b {
+			font-weight: normal;
+			border-radius: 1px;
+			box-sizing: border-box;
+			position: relative;
+			/* border: 1px solid #999; */
+			box-shadow: 0 0 1px #000;
+			background-color: #fff;
+			display: inline-block;
+			width: 7px;
+			height: 7px;
+			margin: 2px;
+		}
+		#calendar .info {
+			position: absolute;
+			white-space: nowrap;
+			line-height: 1.0;
+			z-index: 1;
+			left: 7px;
+			padding: 0 2px 1px 1.5px;
+			line-height: 1;
+			text-shadow: 0 0 1px #fff, 0 0 1px #fff, 0 0 1px #fff, 0 0 1px #fff, 0 0 1px #fff, 0 0 1px #fff, 0 0 1px #fff;
+			background-color: #ffffffaa;
+			/* border: 1px solid #ffffffcc; */
+			border-radius: 0 2px 2px 2px;
+		}
+		#calendar .info.below {
+			top: 5px;
+		}
+		#calendar .info.above {
+			bottom: 3px;
+		}
+		#calendar .info:before {
+			position: absolute;
+			content: '';
+			left: -4px;
+			width: 4px;
+			height: 4px;
+			border: 1px solid #000;
+			/* border-color: #000 transparent transparent #000; */
+			border-width: 1px 0 0 1px;
+			background-image: linear-gradient(45deg, transparent, transparent 2.4px, black 2.4px, black 3.6px, transparent 3.6px, transparent);
+		}
+		#calendar .info.below:before {
+			top: -2px;
+		}
+		#calendar .info.above:before {
+			bottom: 1px;
+			border-width: 0 0 1px 1px;
+			background-image: linear-gradient(135deg, transparent, transparent 2.4px, black 2.4px, black 3.6px, transparent 3.6px, transparent);
+		}
+		#calendar b.past:before {
+			position: absolute;
+			top: -3px; right: -3px; bottom: -3px; left: -3px;
+			content: '';
+			background-image: linear-gradient(-63.435deg, transparent, transparent 45%, #000 45%, #000 55%, transparent 55%, transparent);
+		}
+		@media print {
+			h1 { padding: 0; }
+			#controls { display: none; }
+			#calendar { max-width: 100vw; }
+		}
+	</style>
+</head>
+
+<body>
+<h1>All Your Weekends</h1>
+<p>made with &#x2661; by daniel@danielbaird.com<br>I'm sorry for this</p>
+<div id="controls"></div>
+<div id="calendar"></div>
+
+<script>
+	// ----------------------------------------------------
+	var msInDay = 1000 * 60 * 60 * 24
+	var msInWeek = msInDay * 7
+	var msInYear = msInDay * 365.25
+	var dob
+	var ctrlWrapper = document.querySelector('#controls')
+	var calWrapper = document.querySelector('#calendar')
+	var nDate = new Date()
+	var nYear = nDate.getFullYear()
+	// ----------------------------------------------------
+	var yearSel = document.createElement('select')
+	var mthSel = document.createElement('select')
+	var daySel = document.createElement('select')
+	for (y = 1900; y <= nYear; y++) { addOption(yearSel, y) }
+	['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].forEach((m,i) => {
+		addOption(mthSel, i, m);
+	})
+	for (d = 1; d <= 31; d++) { addOption(daySel, d) }
+	addControl('your birth year', yearSel)
+	addControl('your birth month', mthSel)
+	addControl('your birth date', daySel)
+	// ----------------------------------------------------
+	function addOption(select, value, label) {
+		var opt = document.createElement('option')
+		opt.appendChild(document.createTextNode('' + (label || value)))
+		opt.setAttribute('value', value)
+		select.appendChild(opt)
+	}
+	// ----------------------------------------------------
+	function getLifeWeeks() {
+		return (90 * 52)
+	}
+	// ----------------------------------------------------
+	function updateCtrls() {
+		dob = new Date(yearSel.value, mthSel.value, daySel.value, 12)
+		console.log(dob)
+		if ('' + dob === 'Invalid Date') {
+			showMessage('That is a bad date, and you should feel bad. Try again, fumble fingers.')
+		} else {
+			makeCalendar()
+		}
+	}
+	// ----------------------------------------------------
+	function addControl(prompt, control) {
+		var ctrlDiv = document.createElement('div')
+		ctrlDiv.classList.add('control')
+		var label = document.createElement('label')
+		label.appendChild(document.createTextNode(prompt))
+		control.onchange = updateCtrls
+		label.appendChild(control)
+		ctrlDiv.appendChild(label)
+		ctrlWrapper.appendChild(ctrlDiv)
+	}
+	// ----------------------------------------------------
+	function showMessage(text) {
+		var msg = document.querySelector('#controls .message')
+		if (!msg) {
+			msg = document.createElement('p')
+			msg.classList.add('message')
+			ctrlWrapper.appendChild(msg)
+		}
+		msg.innerHTML = text
+	}
+	// ----------------------------------------------------
+	let above = false
+	function addCell(classes, text) {
+		var elem = document.createElement('b')
+		elem.classList.add(classes)
+		calWrapper.appendChild(elem)
+		if (text) {
+			var msg = document.createElement('span')
+			msg.classList.add('info')
+			if (above) {
+				msg.classList.add('above')
+			} else {
+				msg.classList.add('below')
+			}
+			above = !above
+			msg.innerHTML = text
+			elem.appendChild(msg)
+		}
+	}
+	// ----------------------------------------------------
+	function addCellNotes(notes) {
+		var elem = document.createElement('b')
+		calWrapper.appendChild(elem)
+		if (notes) {
+			Object.keys(notes).forEach( n => {
+				var msg = document.createElement('span')
+				msg.classList.add('info', n)
+				msg.innerHTML = notes[n]
+				elem.appendChild(msg)
+			})
+		}
+	}
+	// ----------------------------------------------------
+	function addCells(count, classes) {
+		for (var i = 0; i < count; i++) {
+			addCell(classes)
+		}
+	}
+	// ----------------------------------------------------
+	function makeCalendar() {
+		calWrapper.innerHTML = ''
+		var life = getLifeWeeks()
+		var sat = dob
+		while (sat.getDay() !== 6) {
+			sat = new Date(sat.getTime() + msInDay)
+		}
+		addCellNotes({above: '1st weekend'})
+		var pYear = sat.getFullYear()
+		var beforeBD = true
+		for (var w=1; w<=life; w++) {
+			sat = new Date(sat.getTime() + msInWeek)
+			var cYear = sat.getFullYear()
+			var notes = {}
+			if (cYear !== pYear) {
+				beforeBD = true
+				if (
+					cYear % 5 === 0        // every 5 years
+					|| cYear === nYear     // this year
+					|| cYear === nYear + 1 // next year
+				) {
+					notes['below'] = '' + cYear
+				}
+			}
+			if (beforeBD && sat.getTime() % msInYear > dob.getTime() % msInYear) {
+				beforeBD = false
+				var bd = Math.round((sat.getTime() - dob.getTime()) / msInYear)
+				notes['above'] = '' + bd + ' birthday'
+			}
+			addCellNotes(notes)
+			pYear = cYear
+		}
+
+	}
+	// ----------------------------------------------------
+	// ----------------------------------------------------
+
+</script>
+</body>
+</html>
